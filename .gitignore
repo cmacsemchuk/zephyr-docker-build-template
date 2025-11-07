@@ -1,0 +1,6 @@
+tools/
+zephyr/
+var/
+build/
+.west/
+.west_modules/

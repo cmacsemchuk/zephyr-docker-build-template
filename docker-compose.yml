@@ -1,0 +1,183 @@
+services:
+  build:
+    image: ghcr.io/zephyrproject-rtos/zephyr-build:main
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    working_dir: /work
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./:/work
+      - ./var:/work/var
+    env_file:
+      - .zephyr-build.env
+    environment:
+      XDG_CACHE_HOME: /work/var/cache
+      PIP_CACHE_DIR: /work/var/cache/pip
+      CCACHE_DIR: /work/var/ccache
+      CCACHE_BASEDIR: /work
+      CCACHE_COMPRESS: "1"
+      CCACHE_MAXSIZE: "5G"
+      CMAKE_EXPORT_PACKAGE_REGISTRY: "OFF"
+    entrypoint: ["/bin/bash","-lc"]
+    command: ["cd /work && exec bash ./scripts/build_generic.sh"]
+
+  build-native:
+    image: ghcr.io/zephyrproject-rtos/zephyr-build:main
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    working_dir: /work
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./:/work
+      - ./var:/work/var
+    env_file:
+      - .zephyr-build.env
+    environment:
+      XDG_CACHE_HOME: /work/var/cache
+      PIP_CACHE_DIR: /work/var/cache/pip
+      CCACHE_DIR: /work/var/ccache
+      CCACHE_BASEDIR: /work
+      CCACHE_COMPRESS: "1"
+      CCACHE_MAXSIZE: "5G"
+      CMAKE_EXPORT_PACKAGE_REGISTRY: "OFF"
+      BOARD: native_sim
+      APP_PATH: auto
+      pristine: "always"
+      FETCH: "auto"
+      GENERATOR: "Ninja"
+    entrypoint: ["/bin/bash","-lc"]
+    command: ["cd /work && exec bash ./scripts/build_generic.sh"]
+
+  build-nrf9151dk:
+    image: ghcr.io/zephyrproject-rtos/zephyr-build:main
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    working_dir: /work
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./:/work
+      - ./var:/work/var
+    env_file:
+      - .zephyr-build.env
+    environment:
+      XDG_CACHE_HOME: /work/var/cache
+      PIP_CACHE_DIR: /work/var/cache/pip
+      CCACHE_DIR: /work/var/ccache
+      CCACHE_BASEDIR: /work
+      CCACHE_COMPRESS: "1"
+      CCACHE_MAXSIZE: "5G"
+      CMAKE_EXPORT_PACKAGE_REGISTRY: "OFF"
+      BOARD: nrf9151dk/nrf9151
+      APP_PATH: auto
+      pristine: "always"
+      FETCH: "auto"
+      GENERATOR: "Ninja"
+      ZEPHYR_SDK_INSTALL_DIR: /opt/toolchains/zephyr-sdk-0.17.4
+      CMAKE_PREFIX_PATH: /opt/toolchains/zephyr-sdk-0.17.4/cmake
+    entrypoint: ["/bin/bash","-lc"]
+    command: ["cd /work && exec bash ./scripts/build_generic.sh"]
+
+  run-native:
+    image: ghcr.io/zephyrproject-rtos/zephyr-build:main
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    working_dir: /work
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./:/work
+      - ./var:/work/var
+    environment:
+      XDG_CACHE_HOME: /work/var/cache
+      PIP_CACHE_DIR: /work/var/cache/pip
+      CCACHE_DIR: /work/var/ccache
+      CMAKE_EXPORT_PACKAGE_REGISTRY: "OFF"
+    entrypoint: ["/bin/bash","-lc"]
+    command: ["cd /work && exec bash ./scripts/run_native.sh"]
+
+  clean-build:
+    image: ghcr.io/zephyrproject-rtos/zephyr-build:main
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    working_dir: /work
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./:/work
+      - ./var:/work/var
+    entrypoint: ["/bin/bash","-lc"]
+    command: ["rm -rf /work/build /tmp/build && echo 'Removed build artifacts.'"]
+
+  clean-all:
+    image: ghcr.io/zephyrproject-rtos/zephyr-build:main
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    working_dir: /work
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./:/work
+      - ./var:/work/var
+    entrypoint: ["/bin/bash","-lc"]
+    command: ["rm -rf /work/build /work/.west /work/.west_modules /tmp/build && echo 'Removed build artifacts and west state.'"]
+
+  bootstrap:
+    image: ghcr.io/zephyrproject-rtos/zephyr-build:main
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    working_dir: /work
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./:/work
+      - ./var:/work/var
+    environment:
+      XDG_CACHE_HOME: /work/var/cache
+      PIP_CACHE_DIR: /work/var/cache/pip
+      CCACHE_DIR: /work/var/ccache
+      CCACHE_BASEDIR: /work
+      CCACHE_COMPRESS: "1"
+      CCACHE_MAXSIZE: "5G"
+      CMAKE_EXPORT_PACKAGE_REGISTRY: "OFF"
+    entrypoint: ["/bin/bash","-lc"]
+    command: ["cd /work && exec bash ./scripts/bootstrap.sh"]
+
+  unbootstrap-hard:
+    image: ghcr.io/zephyrproject-rtos/zephyr-build:main
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    working_dir: /work
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./:/work
+    entrypoint: ["/bin/bash","-lc"]
+    # auto-chmod in case the script bit wasn’t set
+    command: ["[ -x ./scripts/unbootstrap_hard.sh ] || chmod +x ./scripts/unbootstrap_hard.sh; exec ./scripts/unbootstrap_hard.sh --yes"]
+
+  unbootstrap-hard-dry:
+    image: ghcr.io/zephyrproject-rtos/zephyr-build:main
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    working_dir: /work
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./:/work
+    entrypoint: ["/bin/bash","-lc"]
+    command: ["[ -x ./scripts/unbootstrap_hard.sh ] || chmod +x ./scripts/unbootstrap_hard.sh; exec ./scripts/unbootstrap_hard.sh --dry-run"]
+
+  unbootstrap-hard-remove-ci:
+    image: ghcr.io/zephyrproject-rtos/zephyr-build:main
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    working_dir: /work
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./:/work
+    entrypoint: ["/bin/bash","-lc"]
+    command: ["[ -x ./scripts/unbootstrap_hard.sh ] || chmod +x ./scripts/unbootstrap_hard.sh; exec ./scripts/unbootstrap_hard.sh --remove-ci --yes"]
+
+
+  shell:
+    image: ghcr.io/zephyrproject-rtos/zephyr-build:main
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    working_dir: /work
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./:/work
+      - ./var:/work/var
+    environment:
+      XDG_CACHE_HOME: /work/var/cache
+      PIP_CACHE_DIR: /work/var/cache/pip
+      CCACHE_DIR: /work/var/ccache
+      CCACHE_BASEDIR: /work
+      CCACHE_COMPRESS: "1"
+      CCACHE_MAXSIZE: "5G"
+      CMAKE_EXPORT_PACKAGE_REGISTRY: "OFF"
+    entrypoint: ["/bin/bash","-lc"]
+    command: ["exec /bin/bash"]
